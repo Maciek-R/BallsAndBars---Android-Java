@@ -12,9 +12,9 @@ import pl.android.ballsandbars.Constants;
  */
 public class Ball {
 
-    private double x;
-    private double y;
-    private double angle;
+    private float x;
+    private float y;
+    private float angle;
 
     public static int SizeX = (4 * Constants.SCREEN_WIDTH)/100;
     public static int SizeY = (4 * Constants.SCREEN_WIDTH)/100;
@@ -29,23 +29,23 @@ public class Ball {
         areaPoint = area;
     }
 
-    public double getX(){
+    public float getX(){
         return x;
     }
-    public double getY(){
+    public float getY(){
         return y;
     }
-    public double getAngle(){
+    public float getAngle(){
         return angle;
     }
 
-    public void setX(double x){
+    public void setX(float x){
         this.x = x;
     }
-    public void setY(double y){
+    public void setY(float y){
         this.y = y;
     }
-    public void setAngle(double angle){
+    public void setAngle(float angle){
         this.angle = angle;
     }
 
@@ -57,5 +57,13 @@ public class Ball {
     }
     public Rect getRect(){
         return new Rect((int)x, (int)y, (int)x+SizeX, (int)y+SizeY);
+    }
+
+    public void move(float translation){
+        float translationX = (float) (Math.cos(Math.toRadians(angle)) * translation);
+        float translationY = (float) (Math.sin(Math.toRadians(angle)) * translation);
+
+        x = x + translationX;
+        y = y + translationY;
     }
 }

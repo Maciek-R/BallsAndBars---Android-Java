@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -25,6 +26,7 @@ import java.util.Vector;
  * Created by Maciek on 2016-09-28.
  */
 public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
+    public static final String TAG = "GAMEPANEL";
 
     private MainThread mainThread;
 
@@ -33,7 +35,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
     public enum Direction{Poziom, Pion, None};
 
     public Direction dir = Direction.Poziom;
-
+    Paint paint;
 
     Vector<Area> areas;
     Area areaPointer;
@@ -49,15 +51,18 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
     Context context;
     DisplayMetrics dm;
 
+    int mode;
+
     int percent=0;
     int Lifes = 5;
     boolean gameOver = false;
 
-    public GamePanel(Context context, MyTextView Level, MyTextView percent, MainActivity mainActiv, DisplayMetrics dm) {
+    public GamePanel(Context context, MyTextView Level, MyTextView percent, MainActivity mainActiv, DisplayMetrics dm, int mode) {
         super(context);
         this.context = context;
         this.mainActivity = mainActiv;
         this.dm = dm;
+        this.mode = mode;
 
         getHolder().addCallback(this);
         mainThread = new MainThread(getHolder(), this);
@@ -67,7 +72,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         areas = new Vector<>();
         areas.add(new Area(new Rect(0, Constants.START_Y, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)));
         areaPointer = null;
-
+        paint = new Paint();
 
         this.Level = Level;
         this.Percent = percent;
@@ -83,8 +88,8 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         mainThread = new MainThread(getHolder(), this);
         mainThread.setRunning(true);
         mainThread.start();
-        this.Level.show(this.mainActivity, "Poziom 1");
-        this.Percent.show(this.mainActivity, "0");
+        this.Level.show(this.mainActivity, String.valueOf("Poziom " + round.getStage()));
+        this.Percent.show(this.mainActivity, String.valueOf(percent));
     }
 
     @Override
@@ -136,32 +141,13 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         DirSlider = Direction.None;
         areaPointer = null;
 
-        int WholeSurface = Constants.SCREEN_WIDTH * (Constants.SCREEN_HEIGHT- Constants.START_Y);
-
-        int NotUsedSurface=0;
-
-        for(Area area:areas){
-            NotUsedSurface += area.getSurface();
-        }
-
-        int UsedSurface = WholeSurface - NotUsedSurface;
-
-        final double percent = (((double)(UsedSurface)/WholeSurface)*100);
+        final double percent = getFilledSurfaceinPercent();
         this.percent = (int)percent;
 
-       /* mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Percent.setText(String.valueOf(percent));
-            }
-        });*/
         Percent.show(mainActivity, String.valueOf(this.percent));
 
-
-
         if(percent > 80){
-            System.out.println("Next round");
-
+            Log.v(TAG, "Next Round");
 
             areas.clear();
             areas.add(new Area(new Rect(0, Constants.START_Y, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)));
@@ -169,8 +155,19 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
 
             round.nextRound(balls, areas.get(0));
             this.percent=0;
-
         }
+    }
+    private float getFilledSurfaceinPercent(){
+
+        int WholeSurface = Constants.SCREEN_WIDTH * (Constants.SCREEN_HEIGHT- Constants.START_Y);
+        int NotUsedSurface=0;
+
+        for(Area area:areas){
+            NotUsedSurface += area.getSurface();
+        }
+        int UsedSurface = WholeSurface - NotUsedSurface;
+
+        return (((float)(UsedSurface)/WholeSurface)*100);
     }
 
     @Override
@@ -190,8 +187,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
             catch(Exception e){
                 e.printStackTrace();
             }
-            System.out.println("koniec");
-
+            Log.v(TAG, "SurfaceDestroyed");
         }
     }
 
@@ -201,20 +197,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         super.draw(canvas);
 
         canvas.drawColor(Color.WHITE);
-
-
-
-        Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-
-
         paint.setColor(Color.RED);
-        canvas.drawRect(new Rect(0, Constants.START_Y- Constants.BAR_WIDTH, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT), paint);
-        paint.setColor(Color.YELLOW);
+        canvas.drawRect(new Rect(0, Constants.START_Y - Constants.BAR_WIDTH, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT), paint);
 
+        paint.setColor(Color.YELLOW);           //painting not filled areas
         for(Area area:areas) {
             canvas.drawRect(area.border, paint);
         }
+
         paint.setColor(Color.GREEN);
         for(Ball ball:balls) {
             int x = (int) ball.getX();
@@ -226,25 +217,18 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         drawLifes(canvas);
 
         if(gameOver){
-
             drawGameOver(canvas);
         }
-
-
     }
 
-    public void update(double time_elapsed_in_sec){
+    public void update(float time_elapsed_in_sec){
 
         if(gameOver) return;
 
-        double przes = ( (time_elapsed_in_sec)) * Constants.SPEED;
+        float translation = ( (time_elapsed_in_sec)) * Constants.SPEED;
 
         for(Ball ball:balls) {
-            double przesX =  (Math.cos(Math.toRadians(ball.getAngle())) * przes);
-            double przesY =  (Math.sin(Math.toRadians(ball.getAngle())) * przes);
-
-            ball.setX(ball.getX()+przesX);
-            ball.setY(ball.getY()+przesY);
+            ball.move(translation);
         }
 
         checkCollisions();
@@ -257,7 +241,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
             int r = Slider.right;
 
             if (DirSlider == Direction.Pion) {
-                Slider.set(l, t-(int)przes, r, b+(int)przes);
+                Slider.set(l, t-(int)translation, r, b+(int)translation);
 
                 if(Slider.top<areaPointer.border.top && Slider.bottom > areaPointer.border.bottom){
 
@@ -294,7 +278,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
                 }
 
             } else if (DirSlider == Direction.Poziom) {
-                Slider.set(l-(int)przes, t, r+(int)przes, b);
+                Slider.set(l-(int)translation, t, r+(int)translation, b);
 
                 if(Slider.left<areaPointer.border.left && Slider.right > areaPointer.border.right){
 
@@ -374,41 +358,21 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
     }
 
     private void drawSlider(Canvas canvas){
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
 
-        paint.setColor(Color.RED);
-        if(Slider!=null)
+        if(Slider!=null) {
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(Color.RED);
             canvas.drawRect(Slider, paint);
+        }
     }
     private void checkCollisions(){
 
         for(Ball b:balls) {
 
-            double x = b.getX();
-            double y = b.getY();
-            double angle = b.getAngle();
-            Area ar = b.getAreaPoint();
+            float x = b.getX();
+            float y = b.getY();
 
-            if (x < ar.border.left) {
-                angle = (180 - angle) % 360;
-                b.setAngle(angle);
-                b.setX(ar.border.left);
-            } else if (x + Ball.SizeX >= ar.border.right) {
-                angle = (180 - angle) % 360;
-                b.setAngle(angle);
-                b.setX(ar.border.right - Ball.SizeX);
-            }
-
-            if (y < ar.border.top) {
-                angle = (-angle) % 360;
-                b.setAngle(angle);
-                b.setY(ar.border.top);
-            } else if (y + Ball.SizeY >= ar.border.bottom) {
-                angle = (-angle) % 360;
-                b.setAngle(angle);
-                b.setY(ar.border.bottom - Ball.SizeY);
-            }
+            clamp(b);
 
             if(Slider!=null){
                 if(Slider.intersect((int)x, (int)y, (int)x+Ball.SizeX, (int)y+Ball.SizeY)){
@@ -418,33 +382,57 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
                     Lifes--;
                     if(Lifes==0) {
                         gameOver = true;
-
-
-                        MyFileReader Fr = new MyFileReader(context);
-                        Integer stage = Fr.readNextLine();
-                        Integer percent = Fr.readNextLine();
-
-
-                        // System.out.println(stage.intValue());
-                        //System.out.println(percent.intValue());
-
-                        if((stage==null && percent==null) || (round.getStage() > stage.intValue()) ||
-                                ((round.getStage() >= stage.intValue()) && (this.percent > percent.intValue()))){
-
-                            MyFileWriter Fw = new MyFileWriter(context);
-                            Fw.write(String.valueOf(round.getStage()+"\n"));
-                            Fw.write(String.valueOf(this.percent));
-                            Fw.close();
-
-                        }
-
-
+                        saveResult();
                     }
                 }
             }
+
+        }
+    }
+    private void clamp(Ball b){
+        float x = b.getX();
+        float y = b.getY();
+        float angle = b.getAngle();
+        Area ar = b.getAreaPoint();
+
+        if (x < ar.border.left) {
+            angle = (180 - angle) % 360;
+            b.setAngle(angle);
+            b.setX(ar.border.left);
+        } else if (x + Ball.SizeX >= ar.border.right) {
+            angle = (180 - angle) % 360;
+            b.setAngle(angle);
+            b.setX(ar.border.right - Ball.SizeX);
         }
 
+        if (y < ar.border.top) {
+            angle = (-angle) % 360;
+            b.setAngle(angle);
+            b.setY(ar.border.top);
+        } else if (y + Ball.SizeY >= ar.border.bottom) {
+            angle = (-angle) % 360;
+            b.setAngle(angle);
+            b.setY(ar.border.bottom - Ball.SizeY);
+        }
+    }
 
+    private void saveResult(){
+        MyFileReader Fr = new MyFileReader(context);
+        Integer stage = Fr.readNextLine();
+        Integer percent = Fr.readNextLine();
+
+        boolean isPreviousResult = !(stage==null && percent==null);
+        boolean isBetterNewScore = (round.getStage() > stage.intValue()) ||
+                                    ((round.getStage() >= stage.intValue()) && (this.percent > percent.intValue()));
+
+        if((!isPreviousResult) || (isBetterNewScore) ){
+
+            MyFileWriter Fw = new MyFileWriter(context);
+            Fw.write(String.valueOf(round.getStage()+"\n"));
+            Fw.write(String.valueOf(this.percent));
+            Fw.close();
+
+        }
     }
 
     private void drawLifes(Canvas canvas){
@@ -460,27 +448,11 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
 
     }
     private void drawGameOver(Canvas canvas){
-        Paint paint = new Paint();
-        //paint.setTextSize(paint.getTextSize()*3);
 
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.BLUE);
-
-
-        /*int w = (int) paint.measureText("GAME OVER");
-        while(w<Constans.SCREEN_WIDTH/2){
-            paint.setTextSize((float)(paint.getTextSize()+0.5));
-            w = (int) paint.measureText("GAME OVER");
-        }*/
         paint.setTextSize(Constants.GAME_OVER_SIZE);
 
-
-       // System.out.println(paint.getTextSize());
         canvas.drawText("GAME OVER", Constants.SCREEN_WIDTH/2 - Constants.GAME_OVER_WIDTH/2, Constants.SCREEN_HEIGHT/2, paint);
-
-       // paint.setTextSize(Constans.AUTHOR_SIZE);
-
-        //canvas.drawText(Constans.AUTHOR, Constans.SCREEN_WIDTH - Constans.AUTHOR_WIDTH, Constans.SCREEN_HEIGHT, paint);
-
     }
 }

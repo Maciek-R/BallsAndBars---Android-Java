@@ -38,12 +38,12 @@ public class MainThread extends Thread{
         long targetTime = 1000/MAX_FPS;
 
         long lastTimeNano = System.nanoTime();
-        double time_elapsed_in_sec;
+        float time_elapsed_in_sec;
 
         while(running){
             startTime = System.nanoTime();
 
-            time_elapsed_in_sec = (double)(startTime - lastTimeNano)/1000000000;
+            time_elapsed_in_sec = (float)(startTime - lastTimeNano)/1000000000;
             //   System.out.println("Minelo " + time_elapsed_in_sec);
             // System.out.println("Przes " + time_elapsed_in_sec*500);
 

@@ -36,6 +36,7 @@ public class Area {
     public Area(Area area){
 
         border = area.border;
+
         LeftRect = area.LeftRect;
         RightRect = area.RightRect;
         TopRect = area.TopRect;

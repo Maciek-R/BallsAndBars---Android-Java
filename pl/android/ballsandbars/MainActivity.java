@@ -15,6 +15,7 @@ public class MainActivity extends Activity {
 
     private MyTextView Level;
     private MyTextView Percent;
+    private MyButton MyButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,30 +25,29 @@ public class MainActivity extends Activity {
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        // setContentView(R.layout.activity_main);
-
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
-      //  Constans.SCREEN_WIDTH = dm.widthPixels;
-       // Constans.SCREEN_HEIGHT = dm.heightPixels;
-
         Constants.init(dm);
+
+        int mode = 0;
+        Bundle bundle = getIntent().getExtras();
+        if(bundle!=null){
+            mode = bundle.getInt("mode");
+        }
 
 
         Level = new MyTextView(this);
         Level.setAsLevel();
 
-
         Percent = new MyTextView(this);
         Percent.setAsPercent();
 
-        GamePanel gamePanel = new GamePanel(this, Level, Percent, MainActivity.this, dm);
+        GamePanel gamePanel = new GamePanel(this, Level, Percent, MainActivity.this, dm, mode);
 
         setContentView(gamePanel);
 
-        MyButton MyButton;
         MyButton = new MyButton(this, gamePanel);
 
         RelativeLayout.LayoutParams lay = new RelativeLayout.LayoutParams(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT);
@@ -57,10 +57,6 @@ public class MainActivity extends Activity {
         addContentView(MyButton, lay);
         addContentView(Level, lay2);
         addContentView(Percent, lay3);
-
-
-
-
     }
 
 
