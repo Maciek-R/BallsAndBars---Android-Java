@@ -9,7 +9,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
-import maciek.ballsandbars.R;
+//import maciek.ballsandbars.R;
 import pl.android.ballsandbars.util.MyFileReader;
 
 public class StartActivity extends Activity {

@@ -1,6 +1,8 @@
-package pl.android.ballsandbars;
+package pl.android.ballsandbars.objects;
 
 import android.graphics.Rect;
+
+import pl.android.ballsandbars.Constants;
 
 /**
  * Created by Maciek on 2016-09-29.
@@ -50,4 +52,21 @@ public class Area {
     public void set(Rect rect){
         border = rect;
     }
+
+    public Rect getBorder(){
+        return border;
+    }
+    public void setLeftBorder(int value){
+        border.left = value;
+    }
+    public void setRightBorder(int value){
+        border.right = value;
+    }
+    public void setTopBorder(int value){
+        border.top = value;
+    }
+    public void setBottomBorder(int value){
+        border.bottom = value;
+    }
+
 }

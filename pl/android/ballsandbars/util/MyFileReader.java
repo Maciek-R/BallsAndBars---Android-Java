@@ -3,7 +3,8 @@ package pl.android.ballsandbars.util;
 import android.content.Context;
 import android.widget.Toast;
 
-import maciek.ballsandbars.R;
+//import maciek.ballsandbars.R;
+import pl.android.ballsandbars.R;
 import pl.android.ballsandbars.StartActivity;
 
 import java.io.BufferedReader;

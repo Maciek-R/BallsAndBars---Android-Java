@@ -2,11 +2,13 @@ package pl.android.ballsandbars.util;
 
 import android.content.Context;
 
-import maciek.ballsandbars.R;
+//import maciek.ballsandbars.R;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+
+import pl.android.ballsandbars.R;
 
 /**
  * Created by Maciek on 2016-10-04.

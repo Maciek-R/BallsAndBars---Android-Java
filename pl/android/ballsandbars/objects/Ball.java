@@ -4,7 +4,6 @@ import android.graphics.Rect;
 
 import java.util.Random;
 
-import pl.android.ballsandbars.Area;
 import pl.android.ballsandbars.Constants;
 
 /**
