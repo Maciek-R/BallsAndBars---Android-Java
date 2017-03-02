@@ -232,104 +232,101 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         }
 
         checkCollisions();
+        updateSlider(translation);
 
+    }
+
+    private void updateSlider(float translation){
         if(DirSlider!=Direction.None) {
 
-            int l = Slider.left;
-            int t = Slider.top;
-            int b = Slider.bottom;
-            int r = Slider.right;
-
             if (DirSlider == Direction.Pion) {
-                Slider.set(l, t-(int)translation, r, b+(int)translation);
-
-                if(Slider.top<areaPointer.border.top && Slider.bottom > areaPointer.border.bottom){
-
-                    int X = Slider.left;
-
-                    if(!isBallBetween(areaPointer.border.left, areaPointer.border.top, X, areaPointer.border.bottom)) {
-                        areaPointer.border.left = X+ Constants.BAR_WIDTH;
-                        // System.out.println("1");
-                    }
-
-                    else if(!isBallBetween(X, areaPointer.border.top, areaPointer.border.right, areaPointer.border.bottom)) {
-                        areaPointer.border.right = X;
-                        //System.out.println("2");
-                    }
-                    else{
-                        System.out.println("3");
-                        System.out.println((X+ Constants.BAR_WIDTH)+" "+ areaPointer.border.top+" "+ areaPointer.border.right+" "+ areaPointer.border.bottom);
-                        System.out.println(areaPointer.border.left+" "+ areaPointer.border.top+" "+ X+" "+ areaPointer.border.bottom);
-
-                        areas.add(new Area(new Rect(X+ Constants.BAR_WIDTH, areaPointer.border.top, areaPointer.border.right, areaPointer.border.bottom)));
-                        areaPointer.set((new Rect(areaPointer.border.left, areaPointer.border.top, X, areaPointer.border.bottom)));
-
-                        setBallsToArea(Direction.Pion);
-                    }
-
-                    checkProgress();
-
-                }
-                else if(Slider.top<areaPointer.border.top){
-                    Slider.set(Slider.left, areaPointer.border.top, Slider.right, Slider.bottom);
-                }
-                else if(Slider.bottom>areaPointer.border.bottom){
-                    Slider.set(Slider.left, Slider.top, Slider.right, areaPointer.border.bottom);
-                }
+                updateSliderVertically(translation);
 
             } else if (DirSlider == Direction.Poziom) {
-                Slider.set(l-(int)translation, t, r+(int)translation, b);
-
-                if(Slider.left<areaPointer.border.left && Slider.right > areaPointer.border.right){
-
-                    int Y = Slider.top;
-
-                    if(!isBallBetween(areaPointer.border.left, areaPointer.border.top, areaPointer.border.right, Y)) {
-
-                        areaPointer.border.top = Y+ Constants.BAR_WIDTH;
-                        System.out.println("4");
-                    }
-
-                    else if(!isBallBetween(areaPointer.border.left, Y, areaPointer.border.right, areaPointer.border.bottom)) {
-
-                        areaPointer.border.bottom = Y;
-                        System.out.println("5");
-
-                    }
-                    else{
-                        System.out.println("6");
-                        System.out.println(areaPointer.border.left + " " +  Y+ Constants.BAR_WIDTH + " " + areaPointer.border.right + " " + areaPointer.border.bottom);
-                        System.out.println(areaPointer.border.left+ " " + areaPointer.border.top+ " " + areaPointer.border.right+ " " + Y);
-
-                        areas.add(new Area(new Rect(areaPointer.border.left, Y+ Constants.BAR_WIDTH, areaPointer.border.right, areaPointer.border.bottom)));
-                        areaPointer.set((new Rect(areaPointer.border.left, areaPointer.border.top, areaPointer.border.right, Y)));
-
-                        setBallsToArea(Direction.Poziom);
-                    }
-
-
-
-
-                    checkProgress();
-
-                }
-                else if(Slider.left<areaPointer.border.left){
-                    Slider.set(areaPointer.border.left, Slider.top, Slider.right, Slider.bottom);
-                }
-                else if(Slider.right>areaPointer.border.right){
-                    Slider.set(Slider.left, Slider.top, areaPointer.border.right, Slider.bottom);
-                }
+                updateSliderHorizontally(translation);
             }
         }
     }
-    private boolean isBallBetween(int x1, int y1, int x2, int y2){
-        int SizeX = Ball.SizeX;
-        int SizeY = Ball.SizeY;
 
+    private void updateSliderVertically(float translation){
+        int l = Slider.left;
+        int t = Slider.top;
+        int b = Slider.bottom;
+        int r = Slider.right;
+        Slider.set(l, t-(int)translation, r, b+(int)translation);
+
+        if(Slider.top<areaPointer.border.top && Slider.bottom > areaPointer.border.bottom){
+
+            int X = Slider.left;
+
+            if(!isAnyBallInArea(areaPointer.border.left, areaPointer.border.top, X, areaPointer.border.bottom)) {
+                areaPointer.border.left = X+ Constants.BAR_WIDTH;
+            }
+
+            else if(!isAnyBallInArea(X, areaPointer.border.top, areaPointer.border.right, areaPointer.border.bottom)) {
+                areaPointer.border.right = X;
+
+            }
+            else{
+                areas.add(new Area(new Rect(X+ Constants.BAR_WIDTH, areaPointer.border.top, areaPointer.border.right, areaPointer.border.bottom)));
+                areaPointer.set((new Rect(areaPointer.border.left, areaPointer.border.top, X, areaPointer.border.bottom)));
+
+                setBallsToArea(Direction.Pion);
+            }
+
+            checkProgress();
+
+        }
+        else if(Slider.top<areaPointer.border.top){
+            Slider.set(Slider.left, areaPointer.border.top, Slider.right, Slider.bottom);
+        }
+        else if(Slider.bottom>areaPointer.border.bottom){
+            Slider.set(Slider.left, Slider.top, Slider.right, areaPointer.border.bottom);
+        }
+    }
+
+    private void updateSliderHorizontally(float translation){
+        int l = Slider.left;
+        int t = Slider.top;
+        int b = Slider.bottom;
+        int r = Slider.right;
+        Slider.set(l-(int)translation, t, r+(int)translation, b);
+
+        if(Slider.left<areaPointer.border.left && Slider.right > areaPointer.border.right){
+
+            int Y = Slider.top;
+
+            if(!isAnyBallInArea(areaPointer.border.left, areaPointer.border.top, areaPointer.border.right, Y)) {
+
+                areaPointer.border.top = Y+ Constants.BAR_WIDTH;
+            }
+
+            else if(!isAnyBallInArea(areaPointer.border.left, Y, areaPointer.border.right, areaPointer.border.bottom)) {
+
+                areaPointer.border.bottom = Y;
+            }
+            else{
+                areas.add(new Area(new Rect(areaPointer.border.left, Y+ Constants.BAR_WIDTH, areaPointer.border.right, areaPointer.border.bottom)));
+                areaPointer.set((new Rect(areaPointer.border.left, areaPointer.border.top, areaPointer.border.right, Y)));
+
+                setBallsToArea(Direction.Poziom);
+            }
+            checkProgress();
+
+        }
+        else if(Slider.left<areaPointer.border.left){
+            Slider.set(areaPointer.border.left, Slider.top, Slider.right, Slider.bottom);
+        }
+        else if(Slider.right>areaPointer.border.right){
+            Slider.set(Slider.left, Slider.top, areaPointer.border.right, Slider.bottom);
+        }
+    }
+
+    private boolean isAnyBallInArea(int left, int top, int right, int bottom){
         for(Ball ball:balls){
-            Rect rect = new Rect((int)ball.getX(), (int)ball.getY(), (int)ball.getX()+SizeX, (int)ball.getY()+SizeY);
+            Rect rect = new Rect((int)ball.getX(), (int)ball.getY(), (int)ball.getX()+Ball.SizeX, (int)ball.getY()+Ball.SizeY);
 
-            if(rect.intersect(new Rect(x1, y1, x2, y2)))
+            if(rect.intersect(new Rect(left, top, right, bottom)))
                 return true;
         }
         return false;
