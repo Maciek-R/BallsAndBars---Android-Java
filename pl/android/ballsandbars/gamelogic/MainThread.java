@@ -1,6 +1,8 @@
 package pl.android.ballsandbars.gamelogic;
 
 import android.graphics.Canvas;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import pl.android.ballsandbars.GamePanel;
@@ -9,13 +11,17 @@ import pl.android.ballsandbars.GamePanel;
  * Created by Maciek on 2016-09-28.
  */
 public class MainThread extends Thread{
-
+    public static final String TAG = "MAIN_THREAD";
     public static final int MAX_FPS = 60;
-    private double averageFPS;
     private SurfaceHolder surfaceHolder;
     private GamePanel gamePanel;
     private boolean running;
     public static Canvas canvas;
+
+    private long frameStartTimeMs;
+    private int frameCount;
+    private long startTimeMs;
+    private long expectedFrameTimeMs = 1000/MAX_FPS;
 
     public MainThread(SurfaceHolder surfaceHolder, GamePanel gamePanel){
         super();
@@ -31,36 +37,28 @@ public class MainThread extends Thread{
     public void run() {
 
         long startTime;
-        long timeMillis;
-        long waitTime;
-        int frameCount = 0;
-        long totalTime = 0;
-        long targetTime = 1000/MAX_FPS;
 
-        long lastTimeNano = System.nanoTime();
+        long lastTimeNano = SystemClock.elapsedRealtime();
         float time_elapsed_in_sec;
 
         while(running){
-            startTime = System.nanoTime();
+            limitFrameRate();
+           // logFrameRate();
 
-            time_elapsed_in_sec = (float)(startTime - lastTimeNano)/1000000000;
-            //   System.out.println("Minelo " + time_elapsed_in_sec);
-            // System.out.println("Przes " + time_elapsed_in_sec*500);
-
-
+            startTime = SystemClock.elapsedRealtime();
+            time_elapsed_in_sec = (float)(startTime - lastTimeNano)/1000;
             lastTimeNano = startTime;
+
             canvas = null;
-
             try{
-                canvas = this.surfaceHolder.lockCanvas();
+                canvas = surfaceHolder.lockCanvas();
                 synchronized (surfaceHolder){
-                    this.gamePanel.update(time_elapsed_in_sec);
+                    gamePanel.update(time_elapsed_in_sec);
                     if(canvas!=null)
-                        this.gamePanel.draw(canvas);
-                    // System.out.println(this.gamePanel.getBallX());
+                        gamePanel.draw(canvas);
                 }
-
-            }catch(Exception e){e.printStackTrace();}
+            }
+            catch(Exception e){e.printStackTrace();}
             finally {
                 if(canvas!=null){
                     try {
@@ -70,24 +68,28 @@ public class MainThread extends Thread{
 
             }
 
-            timeMillis = (System.nanoTime()-startTime)/1000000;
-            waitTime = targetTime - timeMillis;
-
-            try{
-                if(waitTime>0)
-                    this.sleep(waitTime);
-            }catch (Exception e){e.printStackTrace();}
-
-            totalTime += System.nanoTime()-startTime;
-            frameCount++;
-            if(frameCount==MAX_FPS){
-                averageFPS = 1000/((totalTime/frameCount)/1000000);
-                frameCount=0;
-                totalTime=0;
-                System.out.println(averageFPS);
-            }
-
         }
 
+    }
+
+    private void limitFrameRate(){
+        long elapsedFrameTimeMs = SystemClock.elapsedRealtime() - frameStartTimeMs;
+        long timeToSleepMs = expectedFrameTimeMs - elapsedFrameTimeMs;
+        if(timeToSleepMs > 0){
+            SystemClock.sleep(timeToSleepMs);
+        }
+        frameStartTimeMs = SystemClock.elapsedRealtime();
+    }
+    private void logFrameRate() {
+
+            long elapsedRealTimeMs = SystemClock.elapsedRealtime();
+            double elapsedSeconds = (elapsedRealTimeMs - startTimeMs) / 1000.0;
+
+            if(elapsedSeconds > 1.0){
+                Log.v(TAG, frameCount / elapsedSeconds + "fps");
+                startTimeMs = SystemClock.elapsedRealtime();
+                frameCount = 0;
+            }
+            frameCount++;
     }
 }

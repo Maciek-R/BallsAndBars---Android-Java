@@ -68,6 +68,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback{
         mainThread.start();
         this.levelView.show(this.mainActivity, String.valueOf("Poziom " + objectManager.getStage()));
         this.percentView.show(this.mainActivity, String.valueOf(objectManager.getPercent()));
+        Log.v(TAG, "SurfaceCreated");
     }
 
     @Override
